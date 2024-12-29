@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Přidat položku</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 480px;
+      margin: auto;
+      padding: 20px;
+      background: white;
+      border-radius: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Přidat položku</h1>
+    <input type="text" placeholder="Název položky" id="itemName" />
+    <input type="number" placeholder="Počet kusů" id="itemCount" />
+    <button onclick="saveNewItem()">Uložit</button>
+  </div>
+  <script>
+    function saveNewItem() {
+      const name = document.getElementById('itemName').value;
+      const count = document.getElementById('itemCount').value;
+      alert(`Položka ${name} (${count} ks) byla přidána.`);
+    }
+  </script>
+</body>
+</html>
