@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Mini Bar Management</title>
     <style>
+        /* ZÁKLADNÍ STYLING */
         body {
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
             color: #333;
             background: linear-gradient(135deg, #ff4e50, #f9d423);
+            position: relative;
         }
         .container {
             width: 100%;
@@ -22,6 +24,7 @@
             overflow: hidden;
             padding: 20px;
             box-sizing: border-box;
+            position: relative;
         }
         h1 {
             text-align: center;
@@ -95,12 +98,48 @@
         button:hover {
             background: linear-gradient(135deg, #2980b9, #27ae60);
         }
+
+        /* IKONKA V PRAVÉM HORNÍM ROHU PRO VYMAZÁNÍ localStorage */
+        .clear-storage-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* SKRYTÍ ELEMENTU (např. pro fakturu) */
+        .hidden {
+            display: none;
+        }
+
+        /* STYLING FAKTURY */
+        #invoice {
+            margin-top: 20px;
+            border: 2px dashed #ccc;
+            padding: 15px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        #invoice-details p {
+            margin: 4px 0;
+        }
     </style>
 </head>
 <body>
+    <!-- IKONKA PRO VYMAZÁNÍ LOCALSTORAGE -->
+    <button class="clear-storage-icon" onclick="clearStorage()" title="Vymazat localStorage">
+        🧹
+    </button>
+
     <div class="container">
         <h1>Mini Bar Management</h1>
-        <!-- Výběr vily -->
+
+        <!-- VÝBĚR VILY -->
         <div class="form-group wellness">
             <div class="item-icon">🏡</div>
             <label for="vila" class="item-name">Výběr vily:</label>
@@ -111,39 +150,62 @@
             </select>
         </div>
 
-        <!-- Wellness -->
+        <!-- VÝBĚR MĚNY (EUR / CZK) -->
         <div class="form-group wellness">
-            <div class="item-icon">🛁</div>
-            <label for="wellness" class="item-name">Wellness (€):</label>
-            <input type="number" id="wellness" placeholder="Zadejte částku" min="0" class="item-input">
+            <div class="item-icon">💶</div>
+            <label for="currency" class="item-name">Měna:</label>
+            <select id="currency" class="item-input">
+                <option value="EUR">EUR</option>
+                <option value="CZK">CZK</option>
+            </select>
         </div>
 
-        <!-- Městská daň -->
+        <!-- WELLNESS -->
+        <div class="form-group wellness">
+            <div class="item-icon">🛁</div>
+            <label for="wellness" class="item-name">Wellness:</label>
+            <input type="number" id="wellness" placeholder="Zadejte částku" min="0" class="item-input" />
+        </div>
+
+        <!-- MĚSTSKÁ DAŇ (CITY TAX) -->
         <div class="form-group city-tax">
             <div class="item-icon">🌆</div>
             <label for="guests" class="item-name">Počet hostů:</label>
-            <input type="number" id="guests" placeholder="Zadejte počet" min="0" class="item-input">
+            <input type="number" id="guests" placeholder="Zadejte počet" min="0" class="item-input" />
         </div>
         <div class="form-group city-tax">
             <div class="item-icon">🛏️</div>
             <label for="nights" class="item-name">Počet nocí:</label>
-            <input type="number" id="nights" placeholder="Zadejte počet" min="0" class="item-input">
+            <input type="number" id="nights" placeholder="Zadejte počet" min="0" class="item-input" />
         </div>
 
-        <!-- Položky skladu -->
+        <!-- SLEVA 10% (KROMĚ CITY TAX) -->
+        <div class="form-group city-tax">
+            <div class="item-icon">💰</div>
+            <label for="discount" class="item-name" style="flex:none;">Sleva 10%:</label>
+            <input type="checkbox" id="discount" style="width:auto;" />
+        </div>
+
+        <!-- POLOŽKY SKLADU -->
         <div id="items"></div>
 
-        <!-- Tlačítka -->
+        <!-- VÝBĚR STAVU PLATBY -->
+        <div class="form-group city-tax">
+            <div class="item-icon">💳</div>
+            <label for="paymentStatus" class="item-name">Stav platby:</label>
+            <select id="paymentStatus" class="item-input">
+                <option value="Paid Cash">Paid Cash</option>
+                <option value="Paid Card">Paid Card</option>
+                <option value="Not yet">Not yet</option>
+            </select>
+        </div>
+
+        <!-- TLAČÍTKA -->
         <button onclick="generateInvoice()">Generovat fakturu</button>
         <button onclick="window.location.href='sklad.html'">Přejít do skladu</button>
-        <!-- Přidáno pro jistotu: tlačítko na vymazání localStorage -->
-        <button style="background: linear-gradient(135deg, #c0392b, #e74c3c);"
-                onclick="clearStorage()">
-            Vymazat localStorage
-        </button>
 
-        <!-- Faktura -->
-        <div id="invoice" class="invoice" style="display: none;">
+        <!-- FAKTURA -->
+        <div id="invoice" class="invoice hidden">
             <h2>Faktura</h2>
             <div id="invoice-details"></div>
             <div id="invoice-total"></div>
@@ -151,7 +213,9 @@
     </div>
 
     <script>
-        // Výchozí sklad - pokud nic není v localStorage, vezme se tato hodnota:
+        /* ----------------------------------------------------------------------------------
+           VÝCHOZÍ SKLAD (SHODNÝ S TÍM, CO BUDE VE SKLAD.HTML)
+        ---------------------------------------------------------------------------------- */
         const defaultSklad = {
             "Budvar": 50,
             "Malibu": 48,
@@ -169,9 +233,12 @@
             "Gril": 20
         };
 
-        // Načtení sklad z localStorage nebo defaultSklad
+        // Načteme z localStorage (pokud existuje), jinak použijeme default
         let sklad = JSON.parse(localStorage.getItem("sklad")) || defaultSklad;
 
+        /* ----------------------------------------------------------------------------------
+           PŘIŘAZENÍ IKON A KATEGORIÍ PRO POLOŽKY
+        ---------------------------------------------------------------------------------- */
         const icons = {
             "Budvar": "🍺",
             "Malibu": "🍹",
@@ -206,6 +273,22 @@
             "Gril": "utility"
         };
 
+        /* ----------------------------------------------------------------------------------
+           KURZY PRO JEDNODUCHÝ PŘEVOD (1 EUR = 24 CZK)
+        ---------------------------------------------------------------------------------- */
+        const exchangeRates = {
+            EUR: 1,
+            CZK: 24
+        };
+        // Symboly měn
+        const currencySymbols = {
+            EUR: "€",
+            CZK: "Kč"
+        };
+
+        /* ----------------------------------------------------------------------------------
+           FUNKCE PRO NAČTENÍ POLOŽEK ZE SKLADU DO UI
+        ---------------------------------------------------------------------------------- */
         function loadItems() {
             const container = document.getElementById("items");
             container.innerHTML = "";
@@ -237,54 +320,88 @@
             });
         }
 
+        /* ----------------------------------------------------------------------------------
+           VÝPOČET FAKTURY
+        ---------------------------------------------------------------------------------- */
         function generateInvoice() {
             const vila = document.getElementById("vila").value;
             const wellness = parseFloat(document.getElementById("wellness").value) || 0;
             const guests = parseInt(document.getElementById("guests").value) || 0;
             const nights = parseInt(document.getElementById("nights").value) || 0;
+            const discountChecked = document.getElementById("discount").checked;
+            const paymentStatus = document.getElementById("paymentStatus").value;
+            const selectedCurrency = document.getElementById("currency").value;
 
-            let details = "";
-            let total = 0;
+            // City Tax = 2 EUR za osobu/noc (v EUR)
+            //   - i když jsme v CZK, počítáme to nejprve v EUR, potom přepočteme
+            const cityTaxEUR = guests * nights * 2;
 
-            // Wellness
-            details += `<p>Wellness: €${wellness.toFixed(2)}</p>`;
-            total += wellness;
+            // Začneme rekapitulací
+            let details = `<p><strong>Vila:</strong> ${vila}</p>`;
+            details += `<p><strong>Wellness:</strong> ${wellness.toFixed(2)} €</p>`;
+            details += `<p><strong>City Tax:</strong> ${cityTaxEUR.toFixed(2)} € ( ${guests} hostů × ${nights} nocí × 2€ )</p>`;
 
-            // Městská daň
-            const cityTax = guests * nights * 2; // 2 € za osobu a noc
-            details += `<p>City Tax: €${cityTax.toFixed(2)}</p>`;
-            total += cityTax;
-
-            // Položky skladu
+            // Sečteme minibar položky
+            let sumItemsEUR = 0;
             Object.keys(sklad).forEach(itemName => {
                 const input = document.getElementById(`${itemName}-count`);
                 const count = parseInt(input.value) || 0;
                 if (count > 0) {
-                    // Odečtení ze skladu
+                    // Odečteme z "sklad"
                     sklad[itemName] = Math.max(0, sklad[itemName] - count);
 
-                    // Jednotková cena - pro ukázku 10 € za kus
-                    const price = count * 10;
-                    details += `<p>${count}× ${itemName}: €${price.toFixed(2)}</p>`;
-                    total += price;
+                    // Jednotková cena pro ukázku: 10 € / kus
+                    const priceEUR = count * 10;
+                    sumItemsEUR += priceEUR;
+                    details += `<p>${count}× ${itemName}: ${priceEUR.toFixed(2)} €</p>`;
                 }
             });
 
-            // Uložení nového stavu do localStorage
+            // Částka v EUR za wellness + minibar (bez City Tax)
+            let subtotalEUR = wellness + sumItemsEUR;
+
+            // Sleva 10 % na subtotal (pokud je discountChecked)
+            // City Tax (cityTaxEUR) se neslevňuje
+            if (discountChecked) {
+                subtotalEUR *= 0.9; // odečteme 10%
+                details += `<p><em>Sleva 10% na wellness a položky minibaru (kromě City Tax)</em></p>`;
+            }
+
+            // Celková částka v EUR
+            let totalEUR = subtotalEUR + cityTaxEUR;
+
+            // Převedeme do vybrané měny (EUR / CZK)
+            const rate = exchangeRates[selectedCurrency] || 1; 
+            const symbol = currencySymbols[selectedCurrency] || "€";
+            const finalTotal = totalEUR * rate;
+
+            // Uložíme nový stav skladu do localStorage
             localStorage.setItem("sklad", JSON.stringify(sklad));
 
-            // Zobrazení faktury
+            // Přidáme stav platby
+            details += `<p><strong>Stav platby:</strong> ${paymentStatus}</p>`;
+
+            // Zobrazíme finální částku v zvolené měně
             document.getElementById("invoice-details").innerHTML = details;
-            document.getElementById("invoice-total").innerHTML = `<h3>Celkem: €${total.toFixed(2)}</h3>`;
-            document.getElementById("invoice").style.display = "block";
+            document.getElementById("invoice-total").innerHTML = `
+                <h3>Celkem: ${finalTotal.toFixed(2)} ${symbol}</h3>
+            `;
+
+            // Zobrazíme box s fakturou
+            document.getElementById("invoice").classList.remove("hidden");
         }
 
-        // Funkce na vymazání localStorage
+        /* ----------------------------------------------------------------------------------
+           FUNKCE PRO VYMAZÁNÍ LOCALSTORAGE
+        ---------------------------------------------------------------------------------- */
         function clearStorage() {
             localStorage.removeItem("sklad");
-            alert("localStorage byla vymazána. Obnovte stránku.");
+            alert("LocalStorage byla vymazána. Obnovte stránku.");
         }
 
+        /* ----------------------------------------------------------------------------------
+           KDYŽ SE STRÁNKA NAČTE, PROVEDEME loadItems()
+        ---------------------------------------------------------------------------------- */
         window.onload = loadItems;
     </script>
 </body>
