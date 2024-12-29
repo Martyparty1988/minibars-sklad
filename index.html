@@ -12,7 +12,6 @@
             color: #333;
             background: linear-gradient(135deg, #ff4e50, #f9d423);
         }
-
         .container {
             width: 100%;
             max-width: 480px;
@@ -24,7 +23,6 @@
             padding: 20px;
             box-sizing: border-box;
         }
-
         h1 {
             text-align: center;
             font-size: 32px;
@@ -32,7 +30,6 @@
             color: #ff4e50;
             text-transform: uppercase;
         }
-
         .item, .form-group {
             display: flex;
             align-items: center;
@@ -42,36 +39,28 @@
             border-radius: 12px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
-
         .wellness, .city-tax {
             background: linear-gradient(135deg, #ffeaa7, #fab1a0);
         }
-
         .beer {
             background: linear-gradient(135deg, #f3a683, #f7d794);
         }
-
         .cocktail {
             background: linear-gradient(135deg, #786fa6, #a29bfe);
         }
-
         .softdrink {
             background: linear-gradient(135deg, #63cdda, #81ecec);
         }
-
         .utility {
             background: linear-gradient(135deg, #fdcb6e, #ffeaa7);
         }
-
         .default {
             background: linear-gradient(135deg, #bdc3c7, #2c3e50);
         }
-
         .item-icon {
             font-size: 28px;
             color: #fff;
         }
-
         .item-name {
             flex: 1;
             margin-left: 15px;
@@ -79,7 +68,6 @@
             font-weight: bold;
             color: #fff;
         }
-
         .item-input {
             width: 80px;
             font-size: 16px;
@@ -88,7 +76,6 @@
             border-radius: 8px;
             text-align: center;
         }
-
         button {
             display: block;
             width: 100%;
@@ -105,7 +92,6 @@
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
         }
-
         button:hover {
             background: linear-gradient(135deg, #2980b9, #27ae60);
         }
@@ -146,8 +132,15 @@
 
         <!-- Položky skladu -->
         <div id="items"></div>
+
+        <!-- Tlačítka -->
         <button onclick="generateInvoice()">Generovat fakturu</button>
         <button onclick="window.location.href='sklad.html'">Přejít do skladu</button>
+        <!-- Přidáno pro jistotu: tlačítko na vymazání localStorage -->
+        <button style="background: linear-gradient(135deg, #c0392b, #e74c3c);"
+                onclick="clearStorage()">
+            Vymazat localStorage
+        </button>
 
         <!-- Faktura -->
         <div id="invoice" class="invoice" style="display: none;">
@@ -158,7 +151,8 @@
     </div>
 
     <script>
-        const sklad = JSON.parse(localStorage.getItem("sklad")) || {
+        // Výchozí sklad - pokud nic není v localStorage, vezme se tato hodnota:
+        const defaultSklad = {
             "Budvar": 50,
             "Malibu": 48,
             "Jack s colou": 50,
@@ -174,6 +168,9 @@
             "Plyn": 12,
             "Gril": 20
         };
+
+        // Načtení sklad z localStorage nebo defaultSklad
+        let sklad = JSON.parse(localStorage.getItem("sklad")) || defaultSklad;
 
         const icons = {
             "Budvar": "🍺",
@@ -253,7 +250,7 @@
             details += `<p>Wellness: €${wellness.toFixed(2)}</p>`;
             total += wellness;
 
-            // City Tax
+            // Městská daň
             const cityTax = guests * nights * 2; // 2 € za osobu a noc
             details += `<p>City Tax: €${cityTax.toFixed(2)}</p>`;
             total += cityTax;
@@ -263,17 +260,29 @@
                 const input = document.getElementById(`${itemName}-count`);
                 const count = parseInt(input.value) || 0;
                 if (count > 0) {
+                    // Odečtení ze skladu
                     sklad[itemName] = Math.max(0, sklad[itemName] - count);
-                    const price = count * 10; // Příklad ceny: 10 € za kus
-                    details += `<p>${count}x ${itemName}: €${price.toFixed(2)}</p>`;
+
+                    // Jednotková cena - pro ukázku 10 € za kus
+                    const price = count * 10;
+                    details += `<p>${count}× ${itemName}: €${price.toFixed(2)}</p>`;
                     total += price;
                 }
             });
 
+            // Uložení nového stavu do localStorage
             localStorage.setItem("sklad", JSON.stringify(sklad));
+
+            // Zobrazení faktury
             document.getElementById("invoice-details").innerHTML = details;
             document.getElementById("invoice-total").innerHTML = `<h3>Celkem: €${total.toFixed(2)}</h3>`;
             document.getElementById("invoice").style.display = "block";
+        }
+
+        // Funkce na vymazání localStorage
+        function clearStorage() {
+            localStorage.removeItem("sklad");
+            alert("localStorage byla vymazána. Obnovte stránku.");
         }
 
         window.onload = loadItems;
