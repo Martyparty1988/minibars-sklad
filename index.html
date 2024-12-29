@@ -5,382 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mini Bar Management</title>
   <style>
-    /* ===================== ZÁKLADNÍ STYLING STRÁNKY ===================== */
+    /* Původní styly, upravené */
     body {
       font-family: 'Arial', sans-serif;
       margin: 0;
       padding: 0;
-      color: #333;
       background: linear-gradient(135deg, #ff4e50, #f9d423);
-      position: relative;
     }
     .container {
-      width: 100%;
       max-width: 480px;
-      margin: 20px auto;
+      margin: auto;
+      padding: 20px;
       background: #fff;
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      overflow: hidden;
-      padding: 20px;
-      box-sizing: border-box;
-      position: relative;
     }
     h1 {
       text-align: center;
-      font-size: 32px;
-      margin-bottom: 20px;
       color: #ff4e50;
-      text-transform: uppercase;
     }
-    .item, .form-group {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
-      padding: 10px 15px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-    .wellness, .city-tax {
-      background: linear-gradient(135deg, #ffeaa7, #fab1a0);
-    }
-    .beer {
-      background: linear-gradient(135deg, #f3a683, #f7d794);
-    }
-    .cocktail {
-      background: linear-gradient(135deg, #786fa6, #a29bfe);
-    }
-    .softdrink {
-      background: linear-gradient(135deg, #63cdda, #81ecec);
-    }
-    .utility {
-      background: linear-gradient(135deg, #fdcb6e, #ffeaa7);
-    }
-    .default {
-      background: linear-gradient(135deg, #bdc3c7, #2c3e50);
-    }
-    .item-icon {
-      font-size: 28px;
-      color: #fff;
-    }
-    .item-name {
-      flex: 1;
-      margin-left: 15px;
-      font-size: 18px;
-      font-weight: bold;
-      color: #fff;
-    }
-    .item-input {
-      width: 80px;
-      font-size: 16px;
-      padding: 5px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      text-align: center;
+    .form-group {
+      margin-bottom: 15px;
     }
     button {
       display: block;
       width: 100%;
-      max-width: 320px;
-      margin: 20px auto;
-      padding: 15px;
+      padding: 10px;
       background: linear-gradient(135deg, #3498db, #2ecc71);
       color: white;
-      font-size: 18px;
-      font-weight: bold;
-      text-transform: uppercase;
+      font-size: 16px;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    }
-    button:hover {
-      background: linear-gradient(135deg, #2980b9, #27ae60);
-    }
-
-    /* IKONKA PRO MAZÁNÍ localStorage (vpravo nahoře) */
-    .clear-storage-icon {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: transparent;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-      color: #fff;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    }
-
-    /* Skrytí elementů */
-    .hidden {
-      display: none;
     }
   </style>
 </head>
 <body>
-  <!-- Tlačítko pro smazání localStorage -->
-  <button class="clear-storage-icon" onclick="clearStorage()" title="Vymazat localStorage">
-    🧹
-  </button>
-
   <div class="container">
     <h1>Mini Bar Management</h1>
-
-    <!-- Wellness (EUR) -->
-    <div class="form-group wellness">
-      <div class="item-icon">🛁</div>
-      <label for="wellness" class="item-name">Wellness (v €):</label>
-      <input type="number" id="wellness" placeholder="Zadejte částku" min="0" class="item-input" />
+    <!-- Pole pro městskou daň a další -->
+    <div class="form-group">
+      <label>Počet hostů:</label>
+      <input type="number" id="guests" placeholder="Zadejte počet" />
     </div>
-
-    <!-- City Tax -->
-    <div class="form-group city-tax">
-      <div class="item-icon">🌆</div>
-      <label for="guests" class="item-name">Počet hostů:</label>
-      <input type="number" id="guests" placeholder="Zadejte počet" min="0" class="item-input" />
+    <!-- Sleva přesunuta dolů -->
+    <div class="form-group" id="discount">
+      <label for="discount">Sleva 10 %:</label>
+      <input type="checkbox" />
     </div>
-    <div class="form-group city-tax">
-      <div class="item-icon">🛏️</div>
-      <label for="nights" class="item-name">Počet nocí:</label>
-      <input type="number" id="nights" placeholder="Zadejte počet" min="0" class="item-input" />
-    </div>
-
-    <!-- Sleva 10% (kromě City Tax) -->
-    <div class="form-group city-tax">
-      <div class="item-icon">💰</div>
-      <label for="discount" class="item-name" style="flex:none;">Sleva 10 %:</label>
-      <input type="checkbox" id="discount" style="width:auto;" />
-    </div>
-
-    <!-- Položky skladu -->
-    <div id="items"></div>
-
-    <!-- Tlačítko pro vygenerování faktury -->
     <button onclick="generateInvoice()">Generovat fakturu</button>
   </div>
-
-  <script>
-    /************************************************************************
-      1) STAV SKLADU: Kolik kusů máme k dispozici
-    ************************************************************************/
-    const defaultSklad = {
-      "Budvar": 50,
-      "Malibu": 48,
-      "Jack s colou": 50,
-      "Moscow Mule": 30,
-      "Gin-Tonic": 50,
-      "Mojito": 30,
-      "Coca-Cola": 100,
-      "Sprite": 100,
-      "Red Bull": 100,
-      "Prosecco": 20,
-      "Pivo sud 30 l": 5,
-      "Pivo sud 50 l": 3,
-      "Plyn": 10
-    };
-
-    // Načtení z localStorage (pokud existuje), jinak použijeme default
-    let sklad = JSON.parse(localStorage.getItem("sklad")) || defaultSklad;
-
-    /************************************************************************
-      2) CENÍK (s uvedenou měnou). Vše převádíme do EUR ve faktuře.
-         - Položky s cenou v CZK -> kurz 1 EUR = 24 CZK
-         - Položky v EUR -> beze změny
-         - Wellness je zadaný uživatelem (v EUR)
-         - City Tax se počítá pevnou sazbou 2 EUR / host / noc
-         - Sleva 10 % se aplikuje na vše, kromě City Tax
-    ************************************************************************/
-    const exchangeRateCZK = 24; // 1 EUR = 24 CZK
-
-    // Uvádíme ceny položek, *i měnu*, abychom mohli převést do EUR
-    const itemPrices = {
-      "Budvar":       { value: 59,  currency: "CZK" },
-      "Malibu":       { value: 99,  currency: "CZK" },
-      "Jack s colou": { value: 99,  currency: "CZK" },
-      "Moscow Mule":  { value: 99,  currency: "CZK" },
-      "Gin-Tonic":    { value: 99,  currency: "CZK" },
-      "Mojito":       { value: 99,  currency: "CZK" },
-      "Coca-Cola":    { value: 32,  currency: "CZK" },
-      "Sprite":       { value: 32,  currency: "CZK" },
-      "Red Bull":     { value: 59,  currency: "CZK" },
-      "Prosecco":     { value: 390, currency: "CZK" },
-      "Pivo sud 30 l":{ value: 125, currency: "EUR" },
-      "Pivo sud 50 l":{ value: 175, currency: "EUR" },
-      "Plyn":         { value: 12,  currency: "EUR" }
-      // Ostatní položky, které by tu nebyly, lze ošetřit:
-      // -> if undefined => default např. 10 EUR
-    };
-
-    /************************************************************************
-      3) IKONY A KATEGORIE PRO STYLING
-    ************************************************************************/
-    const icons = {
-      "Budvar": "🍺",
-      "Malibu": "🍹",
-      "Jack s colou": "🥃",
-      "Moscow Mule": "🍸",
-      "Gin-Tonic": "🍸",
-      "Mojito": "🍹",
-      "Coca-Cola": "🥤",
-      "Sprite": "🥤",
-      "Red Bull": "🪽",
-      "Prosecco": "🍾",
-      "Pivo sud 30 l": "🍺",
-      "Pivo sud 50 l": "🍺",
-      "Plyn": "🔥"
-    };
-
-    const categories = {
-      "Budvar": "beer",
-      "Pivo sud 30 l": "beer",
-      "Pivo sud 50 l": "beer",
-      "Malibu": "cocktail",
-      "Jack s colou": "cocktail",
-      "Moscow Mule": "cocktail",
-      "Gin-Tonic": "cocktail",
-      "Mojito": "cocktail",
-      "Prosecco": "cocktail",
-      "Coca-Cola": "softdrink",
-      "Sprite": "softdrink",
-      "Red Bull": "softdrink",
-      "Plyn": "utility"
-    };
-
-    /************************************************************************
-      4) FUNKCE, KTERÁ VRÁTÍ CENU JEDNOHO POLOŽKY V EUR
-    ************************************************************************/
-    function getPriceInEUR(itemName) {
-      const priceInfo = itemPrices[itemName];
-      if (!priceInfo) {
-        // Pokud v tabulce není, bereme 10 EUR jako default
-        return 10.0;
-      }
-      // Pokud měna = "CZK", převedeme na EUR
-      if (priceInfo.currency === "CZK") {
-        return priceInfo.value / exchangeRateCZK;
-      } else {
-        // Jinak je to EUR
-        return priceInfo.value;
-      }
-    }
-
-    /************************************************************************
-      5) ZOBRAZENÍ POLOŽEK ZE SKLADU DO HTML
-    ************************************************************************/
-    function loadItems() {
-      const container = document.getElementById("items");
-      container.innerHTML = "";
-      Object.keys(sklad).forEach(itemName => {
-        const itemDiv = document.createElement("div");
-        itemDiv.classList.add("item");
-        itemDiv.classList.add(categories[itemName] || "default");
-
-        const icon = document.createElement("div");
-        icon.classList.add("item-icon");
-        icon.textContent = icons[itemName] || "📦";
-
-        const name = document.createElement("div");
-        name.classList.add("item-name");
-        name.textContent = `${itemName} (${sklad[itemName]} ks skladem)`;
-
-        const input = document.createElement("input");
-        input.type = "number";
-        input.min = "0";
-        input.placeholder = "Zadejte počet";
-        input.classList.add("item-input");
-        input.id = `${itemName}-count`;
-
-        itemDiv.appendChild(icon);
-        itemDiv.appendChild(name);
-        itemDiv.appendChild(input);
-
-        container.appendChild(itemDiv);
-      });
-    }
-
-    /************************************************************************
-      6) GENEROVÁNÍ FAKTURY (v EUR)
-    ************************************************************************/
-    function generateInvoice() {
-      // Načteme vstupy
-      const wellness = parseFloat(document.getElementById("wellness").value) || 0;
-      const guests = parseInt(document.getElementById("guests").value) || 0;
-      const nights = parseInt(document.getElementById("nights").value) || 0;
-      const discountChecked = document.getElementById("discount").checked;
-
-      // Spočítáme city tax (2 € / host / noc)
-      const cityTax = guests * nights * 2; // v EUR
-
-      // Rekapitulace
-      let invoice = {
-        wellness: wellness,
-        cityTax: cityTax,
-        items: {},
-        discount: discountChecked,
-        totalEUR: 0
-      };
-
-      // Sečteme minibar položky (v EUR)
-      let sumItemsEUR = 0;
-      Object.keys(sklad).forEach(itemName => {
-        const count = parseInt(document.getElementById(`${itemName}-count`).value) || 0;
-        if (count > 0) {
-          // Odečtení ze skladu
-          sklad[itemName] = Math.max(0, sklad[itemName] - count);
-
-          // Cena 1 ks v EUR
-          const pricePerItemEUR = getPriceInEUR(itemName);
-          const totalThisItem = pricePerItemEUR * count;
-          sumItemsEUR += totalThisItem;
-
-          // Přidáme do rekapitulace
-          invoice.items[itemName] = {
-            count: count,
-            priceEUR: pricePerItemEUR.toFixed(2),
-            totalEUR: totalThisItem.toFixed(2)
-          };
-        }
-      });
-
-      // Subtotal (wellness + minibar) -> sem aplikujeme slevu 10 %
-      let subtotalEUR = wellness + sumItemsEUR;
-      if (discountChecked) {
-        subtotalEUR *= 0.9; // -10 %
-      }
-
-      // Celkem (v EUR) = subtotal + cityTax
-      let totalEUR = subtotalEUR + cityTax;
-
-      // Uložíme nový stav skladu do localStorage
-      localStorage.setItem("sklad", JSON.stringify(sklad));
-
-      // Uložíme fakturační data do localStorage
-      const selectedCurrency = "EUR"; // Vygenerování faktury v EUR
-      invoice.totalEUR = totalEUR.toFixed(2);
-      invoice.selectedCurrency = selectedCurrency;
-      invoice.paymentStatus = "Not yet"; // Výchozí stav platby, lze rozšířit
-
-      // Uložíme do localStorage
-      localStorage.setItem("invoice", JSON.stringify(invoice));
-
-      // Přesměrování na stránku faktury
-      window.location.href = "invoice.html";
-    }
-
-    /************************************************************************
-      7) MAZÁNÍ localStorage
-    ************************************************************************/
-    function clearStorage() {
-      localStorage.removeItem("sklad");
-      localStorage.removeItem("invoice");
-      alert("LocalStorage byla vymazána. Obnovte stránku.");
-    }
-
-    /************************************************************************
-      8) PO NAČTENÍ STRÁNKY
-    ************************************************************************/
-    window.onload = loadItems;
-  </script>
 </body>
 </html>
