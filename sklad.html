@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sklad</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #56ab2f, #a8e063);
+            color: #333;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            margin: 20px auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #56ab2f;
+            text-transform: uppercase;
+        }
+
+        .item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background: #f4f4f4;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .item-icon {
+            font-size: 28px;
+            color: #56ab2f;
+        }
+
+        .item-name {
+            flex: 1;
+            margin-left: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .item-input {
+            width: 80px;
+            font-size: 16px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            max-width: 320px;
+            margin: 20px auto;
+            padding: 15px;
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #2980b9, #27ae60);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sklad</h1>
+        <div id="sklad-items"></div>
+        <button onclick="updateStock()">Uložit změny</button>
+        <button onclick="window.location.href='index.html'">Zpět na hlavní stránku</button>
+    </div>
+
+    <script>
+        const sklad = JSON.parse(localStorage.getItem("sklad")) || {
+            "Budvar": 50,
+            "Malibu": 48,
+            "Jack s colou": 50,
+            "Moscow Mule": 30,
+            "Gin-Tonic": 50,
+            "Mojito": 30,
+            "Coca-Cola": 100,
+            "Sprite": 100,
+            "Red Bull": 100,
+            "Prosecco": 20,
+            "Pivo sud 30 l": 10,
+            "Pivo sud 50 l": 5,
+            "Plyn": 12,
+            "Gril": 20
+        };
+
+        const icons = {
+            "Budvar": "🍺",
+            "Malibu": "🍹",
+            "Jack s colou": "🥃",
+            "Moscow Mule": "🍸",
+            "Gin-Tonic": "🍸",
+            "Mojito": "🍹",
+            "Coca-Cola": "🥤",
+            "Sprite": "🥤",
+            "Red Bull": "🪽",
+            "Prosecco": "🍾",
+            "Pivo sud 30 l": "🍺",
+            "Pivo sud 50 l": "🍺",
+            "Plyn": "🔥",
+            "Gril": "🍖"
+        };
+
+        function loadStock() {
+            const container = document.getElementById("sklad-items");
+            container.innerHTML = "";
+            Object.keys(sklad).forEach(itemName => {
+                const item = document.createElement("div");
+                item.classList.add("item");
+
+                const icon = document.createElement("div");
+                icon.classList.add("item-icon");
+                icon.textContent = icons[itemName] || "📦";
+
+                const name = document.createElement("div");
+                name.classList.add("item-name");
+                name.textContent = itemName;
+
+                const input = document.createElement("input");
+                input.type = "number";
+                input.value = sklad[itemName];
+                input.classList.add("item-input");
+                input.id = `${itemName}-stock`;
+
+                item.appendChild(icon);
+                item.appendChild(name);
+                item.appendChild(input);
+
+                container.appendChild(item);
+            });
+        }
+
+        function updateStock() {
+            Object.keys(sklad).forEach(itemName => {
+                const input = document.getElementById(`${itemName}-stock`);
+                sklad[itemName] = parseInt(input.value) || 0;
+            });
+            localStorage.setItem("sklad", JSON.stringify(sklad));
+            alert("Sklad byl aktualizován!");
+        }
+
+        window.onload = loadStock;
+    </script>
+</body>
+</html>
