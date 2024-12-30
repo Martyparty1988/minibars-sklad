@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faktura</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Generovat Fakturu</h1>
+    <label for="guests">Počet hostů:</label>
+    <input type="number" id="guests" min="1" value="1">
+    <label for="nights">Počet nocí:</label>
+    <input type="number" id="nights" min="1" value="1">
+    <label for="discount">Sleva 10 %:</label>
+    <input type="checkbox" id="discount">
+    <button onclick="generateInvoice()">Vygenerovat fakturu</button>
+    <div id="invoice"></div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
