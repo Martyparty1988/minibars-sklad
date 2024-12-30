@@ -2,9 +2,9 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sklad</title>
   <style>
-    /* Původní styl + tlačítka */
     body {
       font-family: 'Arial', sans-serif;
       margin: 0;
@@ -12,24 +12,82 @@
       background: linear-gradient(135deg, #56ab2f, #a8e063);
     }
     .container {
+      width: 100%;
       max-width: 480px;
-      margin: auto;
+      margin: 20px auto;
       padding: 20px;
-      background: white;
+      background: #fff;
       border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      box-sizing: border-box;
     }
-    button {
-      margin-top: 10px;
+    h1 {
+      text-align: center;
+      color: #2e7d32;
+      text-transform: uppercase;
+    }
+    .button {
+      display: block;
+      width: 100%;
+      max-width: 320px;
+      margin: 10px auto;
+      padding: 15px;
+      background: linear-gradient(135deg, #ff7043, #ffab91);
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      text-align: center;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-transform: uppercase;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+    .button:hover {
+      background: linear-gradient(135deg, #d84315, #ff5722);
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Sklad</h1>
-    <!-- Ikona pro přidání položky -->
-    <button onclick="window.location.href='pridat-polozku.html'">➕ Přidat položku</button>
-    <!-- Ikona pro zobrazení statistik -->
-    <button onclick="window.location.href='statistiky.html'">📊 Statistika</button>
+    <!-- Tlačítko pro přidání nové položky -->
+    <button class="button" onclick="window.location.href='pridat-polozku.html'">➕ Přidat položku</button>
+    <!-- Tlačítko pro zobrazení statistik -->
+    <button class="button" onclick="window.location.href='statistiky.html'">📊 Statistika</button>
+    <!-- Zobrazení skladových položek -->
+    <div id="stock-items"></div>
   </div>
+  <script>
+    const sklad = JSON.parse(localStorage.getItem("sklad")) || {
+      "Budvar": 50,
+      "Malibu": 48,
+      "Jack s colou": 50,
+      "Moscow Mule": 30,
+      "Gin-Tonic": 50,
+      "Mojito": 30,
+      "Coca-Cola": 100,
+      "Sprite": 100,
+      "Red Bull": 100,
+      "Prosecco": 20,
+      "Pivo sud 30 l": 10,
+      "Pivo sud 50 l": 5,
+      "Plyn": 12,
+      "Gril": 20
+    };
+
+    function displayStock() {
+      const container = document.getElementById('stock-items');
+      container.innerHTML = '';
+      Object.keys(sklad).forEach(itemName => {
+        const div = document.createElement('div');
+        div.textContent = `${itemName}: ${sklad[itemName]} ks`;
+        div.style.marginBottom = '10px';
+        container.appendChild(div);
+      });
+    }
+
+    window.onload = displayStock;
+  </script>
 </body>
 </html>
